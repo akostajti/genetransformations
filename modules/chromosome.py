@@ -17,8 +17,8 @@ class Chromosome:
     LEFT_COEXPRESSION_BOUNDARY = '{'
     RIGHT_COEXPRESSION_BOUNDARY = '}'
 
-    def __init__(self):
-        self.regions = []
+    def __init__(self, regions):
+        self.regions = regions
 
     def represent(self):
         """
@@ -26,13 +26,15 @@ class Chromosome:
 
         :returns the joined list of the regions
         """
-        return "".join(self.regions)
+        return "".join([region.represent() for region in self.regions])
 
     def reverse(self):
         """
         Reverses the region list and the regions themselves
         """
-        self.regions = [region.reverse() for region in self.regions].reverse()
+        for region in self.regions:
+            region.reverse()
+        self.regions.reverse()
 
     def diff(self, chromosome, diff_method):
         """
@@ -46,7 +48,7 @@ class Chromosome:
 
         :returns a list of ChromosomeRegion instances
         """
-        return [region for region in self.regions if region.canBreak]
+        return [region for region in self.regions if region.can_break]
 
     @staticmethod
     def parse(chromosome_string):
@@ -67,7 +69,7 @@ class Chromosome:
         for next_char in chromosome_string:
             if next_char == Chromosome.LEFT_GENE_BOUNDARY:
                 # create intergenic region and clear the buffer
-                Chromosome.create_intergenic_region(char_buffer, can_break)
+                Chromosome.create_intergenic_region(char_buffer, can_break, regions)
                 char_buffer = []
             elif next_char == Chromosome.RIGHT_GENE_BOUNDARY:
                 # create a gene
@@ -77,22 +79,24 @@ class Chromosome:
                 pass
             elif next_char == Chromosome.LEFT_COEXPRESSION_BOUNDARY or next_char == Chromosome.LEFT_NOBREAK_BOUNDARY:
                 # create intergenic region and clear the buffer
-                Chromosome.create_intergenic_region(char_buffer, can_break)
+                Chromosome.create_intergenic_region(char_buffer, can_break, regions)
                 char_buffer = []
                 can_break = False
             elif next_char == Chromosome.RIGHT_COEXPRESSION_BOUNDARY or next_char == Chromosome.RIGHT_NOBREAK_BOUNDARY:
                 # create intergenic region and clear the buffer
-                Chromosome.create_intergenic_region(char_buffer, can_break)
+                Chromosome.create_intergenic_region(char_buffer, can_break, regions)
                 char_buffer = []
                 can_break = True
             else:
                 char_buffer.append(next_char)
+        return Chromosome(regions)
 
     @staticmethod
-    def create_intergenic_region(char_buffer, can_break):
-        intergenic_region = IntergenicRegion("".join(char_buffer))
-        intergenic_region.can_break = can_break
-
+    def create_intergenic_region(char_buffer, can_break, regions):
+        if len(char_buffer):
+            intergenic_region = IntergenicRegion("".join(char_buffer))
+            intergenic_region.can_break = can_break
+            regions.append(intergenic_region)
 
 class ChromosomeRegion:
     """
@@ -118,7 +122,10 @@ class ChromosomeRegion:
         """
         Reverses the region
         """
-        self.content = self.content.reverse()
+        self.content = "".join(reversed(self.content))
+
+    def represent(self):
+        return self.content
 
 
 class IntergenicRegion(ChromosomeRegion):
@@ -128,7 +135,7 @@ class IntergenicRegion(ChromosomeRegion):
     """
     def __init__(self, content):
         ChromosomeRegion.__init__(self, content)
-        self.can_reak = True
+        self.can_break = True
 
 
 class Gene(ChromosomeRegion):
