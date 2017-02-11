@@ -6,7 +6,7 @@ from applications.GeneticModeling.modules.chromosome import ChromosomeRegion
 class TestChromosomeRegion(TestCase):
     def test_reverse(self):
         region = ChromosomeRegion('ATTGTGT')
-        reversed_content = "".join(reversed(region.content))
+        reversed_content = 'ACACAAT' # reversed and each amino acid is mapped to theidr pair
         region.reverse()
         self.assertEqual(reversed_content, region.represent())
 

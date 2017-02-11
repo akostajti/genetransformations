@@ -18,7 +18,7 @@ class TestChromosome(TestCase):
 
     def test_reverse(self):
         regions = [
-            Gene('ADAC'),
+            Gene('ATAC'),
             Gene('GGGA'),
             IntergenicRegion('TTGA'),
             IntergenicRegion('TCAG')
@@ -26,7 +26,9 @@ class TestChromosome(TestCase):
         chromosome = Chromosome(regions)
 
         chromosome.reverse()
-        self.assertEqual(''.join(reversed('ADACGGGATTGATCAG')), chromosome.represent())
+
+        expected = 'CTGATCAATCCCGTAT'
+        self.assertEqual(expected, chromosome.represent())
 
     def test_get_breakable_regions(self):
         regions = [

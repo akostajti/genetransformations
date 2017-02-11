@@ -123,7 +123,7 @@ class ChromosomeRegion:
         """
         Reverses the region
         """
-        self.content = "".join(reversed(self.content))
+        self.content = "".join(reversed(DnaBaseMappings.map_string(self.content)))
 
     def represent(self):
         return self.content
@@ -145,5 +145,17 @@ class Gene(ChromosomeRegion):
     """
     def __init__(self, content):
         ChromosomeRegion.__init__(self, content)
+
+
+class DnaBaseMappings:
+    """
+    A simple class that converts amino acid characters to their pairs (A to T, G to C etc)
+    """
+    MAPPINGS = {'A': 'T', 'G': 'C', 'T': 'A', 'C': 'G'}
+
+    @staticmethod
+    def map_string(string):
+        return [DnaBaseMappings.MAPPINGS[c.upper()] for c in string]
+
 
 
