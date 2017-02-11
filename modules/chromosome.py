@@ -98,6 +98,7 @@ class Chromosome:
             intergenic_region.can_break = can_break
             regions.append(intergenic_region)
 
+
 class ChromosomeRegion:
     """
     Base class for chromosome regions
