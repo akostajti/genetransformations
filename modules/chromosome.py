@@ -155,7 +155,7 @@ class DnaBaseMappings:
 
     @staticmethod
     def map_string(string):
-        return [DnaBaseMappings.MAPPINGS[c.upper()] for c in string]
+        return "".join([DnaBaseMappings.MAPPINGS[c.upper()] for c in string])
 
 
 
