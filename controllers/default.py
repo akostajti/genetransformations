@@ -9,7 +9,7 @@ def index():
 
     if form.accepted:
         session.flash=T('The simulation starts')
-        redirect(URL('simulation', vars=form.vars))
+        redirect(URL(c='simulation', vars=form.vars))
 
     return dict(form=form)
 
@@ -57,9 +57,6 @@ def _get_diff_strategies():
         'SMC': T('SMC'),
         'Entropy': T('Entropy')
     }
-
-def simulation():
-    return BEAUTIFY(request.vars)
 
 
 @cache.action()
