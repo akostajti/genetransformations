@@ -3,7 +3,7 @@ Defines the chromosome transformations
 """
 import random
 
-from applications.GeneticModeling.modules.chromosome import DnaBaseMappings
+from applications.GeneticModeling.modules.chromosome import DnaBaseMappings, IntergenicRegion
 
 
 def select_random_region(regions,
@@ -59,7 +59,6 @@ class Inversion:
         self.chromosome = chromosome
 
     def transform_with_regions(self,
-                               regions,
                                left_region,
                                right_region,
                                left_region_breaking_point,
@@ -100,12 +99,137 @@ class Inversion:
         left_region_breaking_point = random.randint(a=0, b=len(breaking_points[0].content))
         right_region_breaking_point = random.randint(a=0, b=len(breaking_points[1].content))
 
-        self.transform_with_regions(regions,
-                                    left_region=breaking_points[0],
+        self.transform_with_regions(left_region=breaking_points[0],
                                     right_region=breaking_points[1],
                                     left_region_breaking_point=left_region_breaking_point,
                                     right_region_breaking_point=right_region_breaking_point)
 
 
 class Translocation:
-    pass
+    """
+    A more complex transformation that involves two chromosomes.
+
+    In the target chromosome we break a selected region and move a part of the source chromosome
+    between those points. Eventually the moved part can be reversed (this is totally random).
+
+    Note that the target chromosome may be the same as the source # TODO: implement this
+
+    Attributes:
+        left_chromosome: the left chromosome
+        right_chromosome: the right chromosome
+    """
+    def __init__(self,
+                 left_chromosome,
+                 right_chromosome):
+        self.left_chromosome = left_chromosome
+        self.right_chromosome = right_chromosome
+
+    def transform_with_parameters(self,
+                                  source,
+                                  target,
+                                  left_source_region,
+                                  right_source_region,
+                                  target_insertion_region,
+                                  split_left_source_region_at=None,
+                                  split_right_source_region_at=None,
+                                  split_target_region_at=None):
+        """
+        Translocation based on the input parameters
+
+        Example:
+            source: ATC.UTTTCG.CT (breaks at the dots)
+            target UUUGTA.CTGGG (breaks at the dot)
+
+            result
+            ATC..CT
+            UUUGTA.UTTTCG.CTGGG
+
+        :param source The source chromosome. One section from this chromosome wil be moved to target. Note that target
+            may eventually be the same as source
+        :param target The section from source will be moved to this chromosome
+        :param left_source_region The first region that will break in source
+        :param right_source_region The second region that will break in source
+        :param target_insertion_region This region will break in target and the section from source will be added to the
+            breaking point
+        :param split_left_source_region_at The index where the left source region breaks
+        :param split_right_source_region_at The index where the right source region breaks
+        :param split_target_region_at The target region will break at this index
+        """
+        append_to_same = source == target
+
+        # TODO: implement the case when the source and the target are the same
+
+        # in the target create two new intergenic regions from the broken one
+        new_regions = Translocation._split_region_and_insert(target_insertion_region, target, split_target_region_at)
+
+        # insert the parts from the source chromosome AFTER the first new region created
+        insertion_index = target.regions.index(new_regions[1])
+
+        # move the sections from between the source splitting regions
+        to_move_left_index = source.regions.index(left_source_region) + 1
+        to_move_right_index = source.regions.index(right_source_region)
+        to_move = source.regions[to_move_left_index:to_move_right_index]
+
+        target.regions = target.regions[:insertion_index] + to_move + target.regions[insertion_index:]
+        source.regions[to_move_left_index:to_move_right_index] = []
+
+        # finally break the breaking intergenic regions in the source and move their parts to target
+        left_source_region_split = self._split_region(left_source_region, breaking_point=split_left_source_region_at)
+        right_source_region_split = self._split_region(right_source_region, breaking_point=split_right_source_region_at)
+
+        source.regions[source.regions.index(left_source_region)] = left_source_region_split[0]
+        source.regions[source.regions.index(right_source_region)] = right_source_region_split[1]
+
+        new_regions[0].content = new_regions[0].content + left_source_region_split[1].content
+        new_regions[1].content = right_source_region_split[0].content + new_regions[1].content
+
+        # TODO if there's a random inversion then call Infersion on the moved part in the target chromosome
+
+
+    def transform(self):
+        """
+        Random translocation
+        """
+        chromosomes = [self.left_chromosome, self.right_chromosome]
+        source = random.choice(chromosomes)
+
+        chromosomes.remove(source)
+        target = chromosomes[0]
+
+        # these are the tw regions that will break in the source
+        left_source_region, right_source_region = select_random_region(source.regions, count=2)
+
+        # this is the insertion point in the target region
+        target_insertion_region = select_random_region(target.regions)[0]
+
+        self.transform_with_parameters(source, target=target,
+                       left_source_region=left_source_region, right_source_region=right_source_region,
+                       target_insertion_region=target_insertion_region)
+
+    @staticmethod
+    def _split_region_and_insert(region, target_chromosome, breaking_point=None):
+        """
+        Splits the region into two parts and inserts the resulting regions back in to the
+        chromosome at the original position
+        """
+        index = target_chromosome.regions.index(region)
+
+        new_regions = Translocation._split_region(region, breaking_point=breaking_point)
+
+        target_chromosome.regions = target_chromosome.regions[:index] + new_regions + \
+                                    target_chromosome.regions[index + 1:]
+
+        return new_regions
+
+    @staticmethod
+    def _split_region(region, breaking_point=None):
+        content = region.content
+
+        if breaking_point is None:
+            breaking_point = random.randint(a=1, b=len(content) - 1)
+
+        new_regions = [IntergenicRegion(content[:breaking_point + 1]),
+                       IntergenicRegion(content[breaking_point + 1:])]
+
+        return new_regions
+
