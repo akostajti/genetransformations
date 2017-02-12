@@ -12,16 +12,16 @@ class TestTranslocation(TestCase):
             IntergenicRegion('ATCG'),
             Gene('TTGT'),
             IntergenicRegion('ATGCTG'),
-            Gene('UUUTCG'),
-            IntergenicRegion('UTCTCG')
+            Gene('CCCTCG'),
+            IntergenicRegion('CTCTCG')
         ])
 
         right = Chromosome([
             IntergenicRegion('GTCCG'),
-            Gene('UCTA'),
+            Gene('CCTA'),
             IntergenicRegion('GTCGGGAG'),
-            Gene('TCUCTG'),
-            IntergenicRegion('UUUUTGAAAA'),
+            Gene('TCCCTG'),
+            IntergenicRegion('CCCCTGAAAA'),
             Gene('GTCCCC'),
             IntergenicRegion('CGTGCTG')
         ])
@@ -38,35 +38,38 @@ class TestTranslocation(TestCase):
 
     def test_transform_with_parameters(self):
         """
-        source: AT.CGTTGTATGCTGUUUTCGUT.CTCG
-        target GTCCGUCTAGTCGGGAGTCUCTGUUUUTG.AAAAGTCCCCCGTGCTG
+        source: AT.CGTTGTATGCTGCCCTCGCT.CTCG
+        target GTCCGCCTAGTCGGGAGTCCCTGCCCCTG.AAAAGTCCCCCGTGCTG
         expected AT.CTCG
-                GTCCGUCTAGTCGGGAGTCUCTGUUUUTG.CGTTGTATGCTGUUUTCGUT.AAAAGTCCCCCGTGCTG
+                GTCCGCCTAGTCGGGAGTCCCTGCCCCTG.CGTTGTATGCTGCCCTCGCT.AAAAGTCCCCCGTGCTG
         """
         source = Chromosome([
             IntergenicRegion('ATCG'),
             Gene('TTGT'),
             IntergenicRegion('ATGCTG'),
-            Gene('UUUTCG'),
-            IntergenicRegion('UTCTCG')
+            Gene('CCCTCG'),
+            IntergenicRegion('CTCTCG')
         ])
 
         target = Chromosome([
             IntergenicRegion('GTCCG'),
-            Gene('UCTA'),
+            Gene('CCTA'),
             IntergenicRegion('GTCGGGAG'),
-            Gene('TCUCTG'),
-            IntergenicRegion('UUUUTGAAAA'),
+            Gene('TCCCTG'),
+            IntergenicRegion('CCCCTGAAAA'),
             Gene('GTCCCC'),
             IntergenicRegion('CGTGCTG')
         ])
 
+        source_original_regions = source.regions[:]
+        target_original_regions = target.regions[:]
+
         left_source_region = source.regions[0]  # ATCG
-        right_source_region = source.regions[-1]  # UTCTCG
-        target_insertion_region = target.regions[4]  # UUUUTGAAAA
+        right_source_region = source.regions[-1]  # CTCTCG
+        target_insertion_region = target.regions[4]  # CCCCTGAAAA
         split_left_source_region_at = 1  # AT.CG
-        split_right_source_region_at = 1  # UT.CTCG
-        split_target_region_at = 5  # UUUUTG.AAAA
+        split_right_source_region_at = 1  # CT.CTCG
+        split_target_region_at = 5  # CCCTG.AAAA
 
         translocation = Translocation(source, target)
         translocation.transform_with_parameters(source, target=target,
@@ -75,9 +78,32 @@ class TestTranslocation(TestCase):
                                                 target_insertion_region=target_insertion_region,
                                                 split_left_source_region_at=split_left_source_region_at,
                                                 split_right_source_region_at=split_right_source_region_at,
-                                                split_target_region_at=split_target_region_at)
+                                                split_target_region_at=split_target_region_at,
+                                                reverse=False)
         self.assertEqual('ATCTCG', source.represent())
-        self.assertEqual('GTCCGUCTAGTCGGGAGTCUCTGUUUUTGCGTTGTATGCTGUUUTCGUTAAAAGTCCCCCGTGCTG', target.represent())
+        self.assertEqual('GTCCGCCTAGTCGGGAGTCCCTGCCCCTGCGTTGTATGCTGCCCTCGCTAAAAGTCCCCCGTGCTG', target.represent())
+
+        # test with reverse == True
+        source = Chromosome(source_original_regions)
+        target = Chromosome(target_original_regions)
+
+        left_source_region = source.regions[0]  # ATCG
+        right_source_region = source.regions[-1]  # UTCTCG
+        target_insertion_region = target.regions[4]  # UUUUTGAAAA
+
+        translocation = Translocation(source, target)
+        translocation.transform_with_parameters(source, target=target,
+                                                left_source_region=left_source_region,
+                                                right_source_region=right_source_region,
+                                                target_insertion_region=target_insertion_region,
+                                                split_left_source_region_at=split_left_source_region_at,
+                                                split_right_source_region_at=split_right_source_region_at,
+                                                split_target_region_at=split_target_region_at,
+                                                reverse=True)
+        self.assertEqual('ATCTCG', source.represent())
+        self.assertEqual('GTCCGCCTAGTCGGGAGTCCCTGCCCCTGAGCGAGGGCAGCATACAACGAAAAGTCCCCCGTGCTG', target.represent())
+
+
 
     def test__split_region_and_insert(self):
         regions = [

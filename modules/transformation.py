@@ -132,7 +132,8 @@ class Translocation:
                                   target_insertion_region,
                                   split_left_source_region_at=None,
                                   split_right_source_region_at=None,
-                                  split_target_region_at=None):
+                                  split_target_region_at=None,
+                                  reverse=False):
         """
         Translocation based on the input parameters
 
@@ -154,6 +155,8 @@ class Translocation:
         :param split_left_source_region_at The index where the left source region breaks
         :param split_right_source_region_at The index where the right source region breaks
         :param split_target_region_at The target region will break at this index
+        :param reverse If this parameter is True then after moving the section to target the method executes an Inversion
+            on the same section (reverses it)
         """
         append_to_same = source == target
 
@@ -180,10 +183,19 @@ class Translocation:
         source.regions[source.regions.index(left_source_region)] = left_source_region_split[0]
         source.regions[source.regions.index(right_source_region)] = right_source_region_split[1]
 
+        prefix_length = len(new_regions[0].content)
+        postfix_length = len(right_source_region_split[0].content)
+
         new_regions[0].content = new_regions[0].content + left_source_region_split[1].content
         new_regions[1].content = right_source_region_split[0].content + new_regions[1].content
 
         # TODO if there's a random inversion then call Infersion on the moved part in the target chromosome
+        if reverse:
+            inversion = Inversion(target)
+            inversion.transform_with_regions(left_region=new_regions[0],
+                                             right_region=new_regions[1],
+                                             left_region_breaking_point=prefix_length,
+                                             right_region_breaking_point=postfix_length)
 
 
     def transform(self):
@@ -202,9 +214,11 @@ class Translocation:
         # this is the insertion point in the target region
         target_insertion_region = select_random_region(target.regions)[0]
 
+        reverse = bool(random.getrandbits(1))
+
         self.transform_with_parameters(source, target=target,
                        left_source_region=left_source_region, right_source_region=right_source_region,
-                       target_insertion_region=target_insertion_region)
+                       target_insertion_region=target_insertion_region, reverse=reverse)
 
     @staticmethod
     def _split_region_and_insert(region, target_chromosome, breaking_point=None):
