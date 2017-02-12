@@ -107,18 +107,12 @@ class ChromosomeRegion:
         can_break: if this chromosome is breakable
         content: the string representation of the region (a sequence of amino acid characters)
         reversed: if the region was reversed during a transformation
-        ordinal: a unique number that is assigned to the region on creation
     """
-    nextOrdinal = 1
-
     def __init__(self, content):
         self.content = content
         self.can_break = False
         self.reversed = False
-        self.ordinal = ChromosomeRegion.nextOrdinal
 
-        ChromosomeRegion.nextOrdinal += 1
-    
     def reverse(self):
         """
         Reverses the region
@@ -142,9 +136,16 @@ class IntergenicRegion(ChromosomeRegion):
 class Gene(ChromosomeRegion):
     """
     Represents a gene (a chromosome region that is not breakable)
+
+    Attributes:
+        ordinal: a unique number that is assigned to the region on creation
     """
+    next_ordinal = 0
+
     def __init__(self, content):
         ChromosomeRegion.__init__(self, content)
+        self.ordinal = Gene.next_ordinal
+        Gene.next_ordinal += 1
 
 
 class DnaBaseMappings:
