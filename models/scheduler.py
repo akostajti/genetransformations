@@ -33,8 +33,8 @@ def simulation(number_of_transformations,
 
     # history contains tuples: each tuple contains the left and the right chromosome in the given step
     history = []
-    previous_left = copy.deepcopy(left_chromosome)
-    previous_right = copy.deepcopy(right_chromosome)
+    original_left = copy.deepcopy(left_chromosome)
+    original_right = copy.deepcopy(right_chromosome)
 
     for step in transformation_sequence:
         if step == 'Translocation':
@@ -44,21 +44,22 @@ def simulation(number_of_transformations,
             selected = random.choice([left_chromosome, right_chromosome])
             inversion = Inversion(selected)
             inversion.transform()
-        history.append((_create_history_item(left_chromosome, previous_left),
-                        _create_history_item(right_chromosome, previous_right)))
+        history.append(dict(left=_create_history_item(left_chromosome, original_left),
+                            right=_create_history_item(right_chromosome, original_right),
+                            transformation=step))
 
-        previous_left = copy.deepcopy(left_chromosome)
-        previous_right = copy.deepcopy(right_chromosome)
-
-    return history
+    result = dict(history=history,
+                  final_left=left_chromosome.represent(),
+                  final_right=right_chromosome.represent())
+    return result
 
 
 def _create_history_item(chromosome, previous):
-    representation = chromosome.represent()
+    ordinals = chromosome.get_gene_ordinals()
 
-    levenshtein_distance = editdistance.eval(previous.represent(), representation)
+    levenshtein_distance = editdistance.eval(previous.represent(), chromosome.represent())
 
-    return dict(representation=representation, distance=levenshtein_distance)
+    return dict(ordinals=ordinals, distance=levenshtein_distance)
 
 
 def _build_chromosome_from_file(file_name):
