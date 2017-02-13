@@ -76,3 +76,21 @@ class TestChromosome(TestCase):
         for region, expectation in zip(chromosome.regions, expectations):
             self.assertEqual(region.can_break, expectation[0])
             self.assertEqual(region.content, expectation[1], region.represent())
+
+    def test_get_gene_ordinals(self):
+        chromosome = Chromosome(
+            [
+                IntergenicRegion('TCTA'),
+                Gene('AAAGTA'),
+                IntergenicRegion('CCCCCGTG'),
+                Gene('ATCTGA'),
+                Gene('TTTATTTA')
+            ]
+        )
+
+        self.assertEqual([0, 1, 2], chromosome.get_gene_ordinals())
+
+        # change the order
+        chromosome.regions[0] = chromosome.regions[-1]
+        chromosome.regions = chromosome.regions[:-1]
+        self.assertEqual([2, 0, 1], chromosome.get_gene_ordinals())

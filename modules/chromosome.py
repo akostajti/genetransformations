@@ -50,6 +50,12 @@ class Chromosome:
         """
         return [region for region in self.regions if region.can_break]
 
+    def get_gene_ordinals(self):
+        """
+        Returns the original gene ordinals in their current order.
+        """
+        return [gene.ordinal for gene in self.regions if isinstance(gene, Gene)]
+
     @staticmethod
     def parse(chromosome_string):
         """
