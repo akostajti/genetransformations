@@ -1,3 +1,4 @@
+import os
 
 def index():
     """
@@ -31,7 +32,31 @@ def result():
     task_id = int(request.vars['task_id'])
     status = get_task_status(task_id)
     traceback = status.scheduler_run.traceback
-    return dict(traceback=BEAUTIFY(traceback), status=BEAUTIFY(status))
+
+    result = status.result
+
+    # write the gene orders to files
+    left_result_file = "left-chromosome-result.txt"
+    write_ordinals_to_file(result['history'], 'left', left_result_file)
+
+    right_result_file = "right-chromosome-result.txt"
+    write_ordinals_to_file(result['history'], 'left', right_result_file)
+
+    return dict(traceback=BEAUTIFY(traceback),
+                status=status,
+                left_result_download_url=URL(c='default', f='download', args=[left_result_file]),
+                right_result_download_url=URL(c='default', f='download', args=[right_result_file]))
+    """
+    result['history']
+    return dict(traceback=result['history'], status=status, left_result_download_url='GG', right_result_download_url='RR')
+    """
+
+
+def write_ordinals_to_file(history, key, left_result_file):
+    with open(os.path.join(request.folder, 'uploads/' + left_result_file), 'a') as output:
+        for history_item in history:
+            ordinals = history_item[key]['ordinals']
+            output.write(', '.join([str(ordinal) for ordinal in ordinals]) + '\n')
 
 
 

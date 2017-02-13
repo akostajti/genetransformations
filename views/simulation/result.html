@@ -1,7 +1,27 @@
 {{left_sidebar_enabled,right_sidebar_enabled=False,('message' in globals())}}
 {{extend 'layout.html'}}
 
-<h1>{{=T('The simulation is running')}}</h1>
-{{=traceback}}
-{{=status}}
+{{if status.scheduler_run.status  == 'RUNNING':}}
+    <h1>{{=T('The simulation is running')}}</h1>
+    <p>
+        {{=T('The page refreshes automatically in 5 seconds')}}
+    </p>
+{{elif status.scheduler_run.status == 'COMPLETED':}}
+    <h1>{{=T('The simulation has ended')}}</h1>
+    <p>
+        <a href="{{=left_result_download_url}}">{{=T('Download the left result file')}}</a>
+    </p>
+    <p>
+        <a href="{{=right_result_download_url}}">{{=T('Download the right result file')}}</a>
+    </p>
+{{pass}}
+{{if not traceback is None:}}
+    <p>
+        {{=T('Errors during the simulation')}}
+    </p>
+
+        {{for k in traceback:}}
+            {{=k}}
+        {{pass}}
+{{pass}}
 
