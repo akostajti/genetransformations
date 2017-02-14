@@ -72,6 +72,10 @@ class Chromosome:
         char_buffer = []
         can_break = True
 
+        """
+        inside a coexpression segment neither
+        the intergenic regions can break.
+        """
         for next_char in chromosome_string:
             if next_char == Chromosome.LEFT_GENE_BOUNDARY:
                 # create intergenic region and clear the buffer
