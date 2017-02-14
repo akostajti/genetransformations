@@ -1,30 +1,35 @@
 """
 Defines the chromosome transformations
 """
-from numpy import random
+from numpy import random, math
 
 from applications.GeneticModeling.modules.chromosome import DnaBaseMappings, IntergenicRegion
 
 
 def select_random_region(regions,
                          count=1,
-                         only_breakable=True,
-                         longer_breaks_often=True):
+                         longer_breaks_often=True,
+                         random_error=None):
     """
     Randomly selects some regions from the regions list.
 
     :param regions: the region list from which to select
     :param count: the number of regions to select. If greater than len(regions) throws an error.
-    :param only_breakable: if True then only breakable regions are returned
     :param longer_breaks_often: if true then the regions that are longer break with a higher probability
+    :param random_error the error used when selecting the regions that can break. Normally only intergenic regions
+        can break. If random_error is greater than 0 then with some chance also non-breaking regions can be selected
+        for break.
 
     :returns a list of size count containing regions from the regions list. If there are no matching regions
     than returns an empty list. The elements in the resulting list are in the same order as in the original.
     """
-    if only_breakable:
+    def error():
+        return random.choice([True, False], p=[random_error, 1.0 - random_error])
+
+    if random_error is None:
         filtered = [region for region in regions if region.can_break]
     else:
-        filtered = regions[:]  # copy the list because the function modifies it
+        filtered = [region for region in regions if region.can_break or error()]
 
     if len(filtered) == 0:
         return []
@@ -36,8 +41,6 @@ def select_random_region(regions,
         probabilities = None
 
     result = random.choice(filtered, p=probabilities, size=count, replace=False)
-    if count == 1:
-        result = [result]
 
     # sort the items to their original order
     tuples = sorted(zip([regions.index(region) for region in result], result))
@@ -61,8 +64,9 @@ class Transformation:
     Arguments:
         longer_breaks_often: if true then the longer intergenic regions break with a higher probability
     """
-    def __init__(self, longer_breaks_often=True):
+    def __init__(self, longer_breaks_often=True, random_error=None):
         self.longer_breaks_often = longer_breaks_often
+        self.random_error = random_error
     pass
 
 
@@ -83,8 +87,8 @@ class Inversion(Transformation):
     Attributes:
         chromosome: the chromosome to transform
     """
-    def __init__(self, chromosome, longer_breaks_often=True):
-        Transformation.__init__(self, longer_breaks_often=longer_breaks_often)
+    def __init__(self, chromosome, longer_breaks_often=True, random_error=None):
+        Transformation.__init__(self, longer_breaks_often=longer_breaks_often, random_error=random_error)
         self.chromosome = chromosome
 
     def transform_with_regions(self,
@@ -126,8 +130,8 @@ class Inversion(Transformation):
         breaking_points = select_random_region(self.chromosome.regions, count=2,
                                                longer_breaks_often=self.longer_breaks_often)
 
-        left_region_breaking_point = random.randint(a=0, b=len(breaking_points[0].content))
-        right_region_breaking_point = random.randint(a=0, b=len(breaking_points[1].content))
+        left_region_breaking_point = random.randint(0, high=len(breaking_points[0].content))
+        right_region_breaking_point = random.randint(0, high=len(breaking_points[1].content))
 
         self.transform_with_regions(left_region=breaking_points[0],
                                     right_region=breaking_points[1],
@@ -151,8 +155,10 @@ class Translocation(Transformation):
     def __init__(self,
                  left_chromosome,
                  right_chromosome,
-                 longer_breaks_often=True):
-        Transformation.__init__(self, longer_breaks_often=longer_breaks_often)
+                 longer_breaks_often=True,
+                 random_error=None):
+        Transformation.__init__(self, longer_breaks_often=longer_breaks_often,
+                                random_error=random_error)
         self.left_chromosome = left_chromosome
         self.right_chromosome = right_chromosome
 
@@ -247,7 +253,7 @@ class Translocation(Transformation):
         # this is the insertion point in the target region
         target_insertion_region = select_random_region(target.regions, longer_breaks_often=self.longer_breaks_often)[0]
 
-        reverse = bool(random.getrandbits(1))
+        reverse = random.choice([True, False])
 
         self.transform_with_parameters(source, target=target,
                        left_source_region=left_source_region, right_source_region=right_source_region,
@@ -273,7 +279,7 @@ class Translocation(Transformation):
         content = region.content
 
         if breaking_point is None:
-            breaking_point = random.randint(a=1, b=len(content) - 1)
+            breaking_point = random.randint(1, high=len(content) - 1)
 
         new_regions = [IntergenicRegion(content[:breaking_point + 1]),
                        IntergenicRegion(content[breaking_point + 1:])]
