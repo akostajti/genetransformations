@@ -35,28 +35,55 @@ def result():
 
     result = status.result
 
-    # write the gene orders to files
-    left_result_file = "left-chromosome-result.txt"
-    write_ordinals_to_file(result['history'], 'left', left_result_file)
+    data = dict(traceback=BEAUTIFY(traceback),
+                status=status)
+    if status.scheduler_run.status == 'COMPLETED':
+        # write the gene orders to files
+        left_ordinals_file = "left-chromosome-ordinals.txt"
+        _write_ordinals_to_file(result['history'], 'left', left_ordinals_file)
 
-    right_result_file = "right-chromosome-result.txt"
-    write_ordinals_to_file(result['history'], 'left', right_result_file)
+        right_ordinals_file = "right-chromosome-ordinals.txt"
+        _write_ordinals_to_file(result['history'], 'left', right_ordinals_file)
 
-    return dict(traceback=BEAUTIFY(traceback),
-                status=status,
-                left_result_download_url=URL(c='default', f='download', args=[left_result_file]),
-                right_result_download_url=URL(c='default', f='download', args=[right_result_file]))
+        left_result_file = 'left-chromosome-result.txt'
+        _write_chromosome_to_file(result['final_left'], left_result_file)
+
+        right_result_file = 'right-chromosome-result.txt'
+        _write_chromosome_to_file(result['final_right'], right_result_file)
+
+        data['left_result_download_url'] = _get_download_url(left_result_file)
+        data['right_result_download_url'] = _get_download_url(right_result_file)
+
+        data['left_ordinals_download_url'] = _get_download_url(left_ordinals_file)
+        data['right_ordinals_download_url'] = _get_download_url(right_ordinals_file)
+
+        # create the dataset for the chart
+        dataset = [history_item['distance'] for history_item in result['history'] if 'distance' in history_item]
+        data['dataset'] = dataset
+
+    return data
+
+
+def download():
     """
-    result['history']
-    return dict(traceback=result['history'], status=status, left_result_download_url='GG', right_result_download_url='RR')
+    Downloads a simulation file
     """
+    file_name = request.args[0]
+
+    response.stream(os.path.join(request.folder, 'uploads/' + file_name), attachment=True, filename=file_name)
 
 
-def write_ordinals_to_file(history, key, left_result_file):
-    with open(os.path.join(request.folder, 'uploads/' + left_result_file), 'a') as output:
+def _write_ordinals_to_file(history, key, left_result_file):
+    with open(os.path.join(request.folder, 'uploads/' + left_result_file), 'w') as output:
         for history_item in history:
             ordinals = history_item[key]['ordinals']
             output.write(', '.join([str(ordinal) for ordinal in ordinals]) + '\n')
 
 
+def _write_chromosome_to_file(chromosome_description, file_name):
+    with open(os.path.join(request.folder, 'uploads/' + file_name), 'w') as output:
+        output.write(chromosome_description)
 
+
+def _get_download_url(file_name):
+    return URL(c='simulation', f='download', args=[file_name])

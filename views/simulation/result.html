@@ -1,12 +1,8 @@
 {{left_sidebar_enabled,right_sidebar_enabled=False,('message' in globals())}}
 {{extend 'layout.html'}}
-
-{{if status.scheduler_run.status  == 'RUNNING':}}
-    <h1>{{=T('The simulation is running')}}</h1>
-    <p>
-        {{=T('The page refreshes automatically in 5 seconds')}}
-    </p>
-{{elif status.scheduler_run.status == 'COMPLETED':}}
+{{=BEAUTIFY(status)}}
+        <script src="{{=URL('static','js/Chart.js')}}"></script>
+{{if status.scheduler_run.status == 'COMPLETED':}}
     <h1>{{=T('The simulation has ended')}}</h1>
     <p>
         <a href="{{=left_result_download_url}}">{{=T('Download the left result file')}}</a>
@@ -14,14 +10,51 @@
     <p>
         <a href="{{=right_result_download_url}}">{{=T('Download the right result file')}}</a>
     </p>
-{{pass}}
-{{if not traceback is None:}}
+    <p>
+        <a href="{{=left_ordinals_download_url}}">{{=T('Download the left ordinal file')}}</a>
+    </p>
+    <p>
+        <a href="{{=right_ordinals_download_url}}">{{=T('Download the right ordinal file')}}</a>
+    </p>
+
+        <div>
+            <canvas id="chart" width="600" height="400"></canvas>
+        </div>
+        <script type="text/javascript">
+            var data = {
+					labels: {{=dataset}},
+				    datasets: [
+				        {
+				            label: "Kombinált kromoszómák távolságváltozása",
+				            fillColor: "rgba(220,220,220,0.2)",
+				            strokeColor: "rgba(220,220,220,1)",
+				            pointColor: "rgba(220,220,220,1)",
+				            pointStrokeColor: "#fff",
+				            pointHighlightFill: "#fff",
+				            pointHighlightStroke: "rgba(220,220,220,1)",
+				            data: {{=dataset}}
+				        }
+				    ]
+				};
+
+			var ctx = document.getElementById("chart").getContext("2d");
+			ctx.clearRect(0, 0, 600, 400);
+			var myNewChart1 = new Chart(ctx).Line(data);
+
+        </script>
+{{elif status.scheduler_run.status == 'FAILED':}}
     <p>
         {{=T('Errors during the simulation')}}
     </p>
 
-        {{for k in traceback:}}
-            {{=k}}
-        {{pass}}
+    {{for k in traceback:}}
+        {{=k}}
+    {{pass}}
+{{else:}}
+    <h1>{{=T('The simulation is running')}}</h1>
+    <p>
+        {{=T('The page refreshes automatically in 5 seconds')}}
+    </p>
 {{pass}}
+
 
