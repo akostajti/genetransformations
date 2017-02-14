@@ -21,8 +21,10 @@ def simulation(number_of_transformations,
 
     # build the chromosomes from the files
     uploads_folder = os.path.join(request.folder, 'uploads')
-    left_chromosome = _build_chromosome_from_file(os.path.join(uploads_folder, left_chromosome_file))
-    right_chromosome = _build_chromosome_from_file(os.path.join(uploads_folder, right_chromosome_file))
+    left_chromosome = _build_chromosome_from_file(os.path.join(uploads_folder, left_chromosome_file),
+                                                  use_coexpression=use_coexpression)
+    right_chromosome = _build_chromosome_from_file(os.path.join(uploads_folder, right_chromosome_file),
+                                                   use_coexpression=use_coexpression)
 
     number_of_translocations = int(rate_of_translocations * number_of_transformations)
     number_of_inversions = number_of_transformations - number_of_translocations
@@ -68,7 +70,7 @@ def _create_history_item(chromosome):
     return dict(ordinals=ordinals)
 
 
-def _build_chromosome_from_file(file_name):
+def _build_chromosome_from_file(file_name, use_coexpression=False):
     with open(file_name, 'r') as file:
         chromosome_description = file.read()
         chromosome = Chromosome.parse(chromosome_description)

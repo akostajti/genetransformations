@@ -58,7 +58,7 @@ class Chromosome:
         return [gene.ordinal for gene in self.regions if isinstance(gene, Gene)]
 
     @staticmethod
-    def parse(chromosome_string):
+    def parse(chromosome_string, use_coexpression=False):
         """
         Parses the string representation of a chromosome anr returns the chromosome
 
@@ -95,11 +95,14 @@ class Chromosome:
                 # create intergenic region and clear the buffer
                 Chromosome.create_intergenic_region(char_buffer, can_break, regions)
                 char_buffer = []
-                can_break = False
+
+                if next_char == Chromosome.LEFT_NOBREAK_BOUNDARY or use_coexpression:
+                    can_break = False
             elif next_char == Chromosome.RIGHT_COEXPRESSION_BOUNDARY or next_char == Chromosome.RIGHT_NOBREAK_BOUNDARY:
                 # create intergenic region and clear the buffer
                 Chromosome.create_intergenic_region(char_buffer, can_break, regions)
                 char_buffer = []
+
                 can_break = True
             elif next_char == Chromosome.ESSENTIAL_GENE_MARKER:
                 is_essential = True

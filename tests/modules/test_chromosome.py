@@ -80,7 +80,7 @@ class TestChromosome(TestCase):
     def test_parse_coexpression(self):
         chromosome_descripton = '''<ADCGTGGG>{AAAGT(DAC)TTTGACU(UUTGAAA)}AGT<CCCGTU>'''
 
-        chromosome = Chromosome.parse(chromosome_descripton)
+        chromosome = Chromosome.parse(chromosome_descripton, use_coexpression=True)
 
         # expected: the intergenic regions between the curly brackets cannot break
         self.assertEqual(len(chromosome.regions), 7)
@@ -90,6 +90,25 @@ class TestChromosome(TestCase):
             (False, 'AAAGT'),
             (False, 'DAC'),
             (False, 'TTTGACU'),
+            (False, 'UUTGAAA'),
+            (True, 'AGT'),
+            (False, 'CCCGTU')
+        ]
+
+        for region, expectation in zip(chromosome.regions, expectations):
+            self.assertEqual(region.can_break, expectation[0])
+            self.assertEqual(region.content, expectation[1], region.represent())
+
+        chromosome = Chromosome.parse(chromosome_descripton, use_coexpression=False)
+
+        # expected: the intergenic regions between the curly brackets cannot break
+        self.assertEqual(len(chromosome.regions), 7)
+
+        expectations = [
+            (False, 'ADCGTGGG'),
+            (True, 'AAAGT'),
+            (False, 'DAC'),
+            (True, 'TTTGACU'),
             (False, 'UUTGAAA'),
             (True, 'AGT'),
             (False, 'CCCGTU')
