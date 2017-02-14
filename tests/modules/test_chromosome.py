@@ -88,9 +88,9 @@ class TestChromosome(TestCase):
             ]
         )
 
-        self.assertEqual([0, 1, 2], chromosome.get_gene_ordinals())
+        original_ordinals = chromosome.get_gene_ordinals()[:]
 
         # change the order
         chromosome.regions[0] = chromosome.regions[-1]
         chromosome.regions = chromosome.regions[:-1]
-        self.assertEqual([2, 0, 1], chromosome.get_gene_ordinals())
+        self.assertEqual([original_ordinals[2], original_ordinals[0], original_ordinals[1]], chromosome.get_gene_ordinals())

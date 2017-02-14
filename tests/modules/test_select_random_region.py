@@ -20,13 +20,14 @@ class TestSelect_random_region(TestCase):
         self.assertEqual(len(choices), 3)
 
         # check if all choices are in the original list and they are not identical
-        self.assertEqual(len(set([choice for choice in choices if regions.index(choice)])), 3)
+        uniq = set([choice for choice in choices if regions.index(choice) >= 0])
+        self.assertEqual(len(uniq), 3)
 
         # create a list of non-breakable regions
         non_breakable = [Gene('AGTCCCCC') for i in range(1, 10)]
         choices = select_random_region(non_breakable)
         self.assertEqual(len(choices), 0)
 
-        # get also non breakable regions
-        choices = select_random_region(non_breakable, only_breakable=False)
+        # test with random error == 1.0
+        choices = select_random_region(non_breakable, random_error=1.0)
         self.assertEqual(len(choices), 1)

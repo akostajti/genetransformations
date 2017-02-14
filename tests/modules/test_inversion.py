@@ -9,8 +9,7 @@ class TestInversion(TestCase):
         regions = self._create_regions()
         chromosome = Chromosome(regions)
 
-        Inversion(chromosome).transform_with_regions(regions,
-                                                     left_region=regions[2],
+        Inversion(chromosome).transform_with_regions(left_region=regions[2],
                                                      right_region=regions[-1],
                                                      left_region_breaking_point=5,
                                                      right_region_breaking_point=7)
