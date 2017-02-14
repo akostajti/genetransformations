@@ -1,8 +1,7 @@
 """
 Defines the chromosome transformations
 """
-import random
-import numpy
+from numpy import random
 
 from applications.GeneticModeling.modules.chromosome import DnaBaseMappings, IntergenicRegion
 
@@ -30,15 +29,15 @@ def select_random_region(regions,
     if len(filtered) == 0:
         return []
 
-    result = []
-    for i in range(0, count):
-        if longer_breaks_often:
-            probabilities = compute_probabilities_based_on_length(filtered)
-            choice = numpy.random.choice(filtered, p=probabilities)
-        else:
-            choice = random.choice(filtered)
-        filtered.remove(choice)
-        result.append(choice)
+    if longer_breaks_often:
+        probabilities = compute_probabilities_based_on_length(filtered)
+
+    else:
+        probabilities = None
+
+    result = random.choice(filtered, p=probabilities, size=count, replace=False)
+    if count == 1:
+        result = [result]
 
     # sort the items to their original order
     tuples = sorted(zip([regions.index(region) for region in result], result))
