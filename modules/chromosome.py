@@ -16,6 +16,7 @@ class Chromosome:
     LEFT_GENE_BOUNDARY = '('
     LEFT_COEXPRESSION_BOUNDARY = '{'
     RIGHT_COEXPRESSION_BOUNDARY = '}'
+    ESSENTIAL_GENE_MARKER = ';'  # this marker must be at the end of the gene description (just before the closing bracket)
 
     def __init__(self, regions):
         self.regions = regions
@@ -72,6 +73,9 @@ class Chromosome:
         char_buffer = []
         can_break = True
 
+        # if the current gene is essential or not
+        is_essential = False
+
         """
         inside a coexpression segment neither
         the intergenic regions can break.
@@ -83,10 +87,10 @@ class Chromosome:
                 char_buffer = []
             elif next_char == Chromosome.RIGHT_GENE_BOUNDARY:
                 # create a gene
-                gene = Gene("".join(char_buffer))
+                gene = Gene("".join(char_buffer), is_essential=is_essential)
+                is_essential = False
                 regions.append(gene)
                 char_buffer = []
-                pass
             elif next_char == Chromosome.LEFT_COEXPRESSION_BOUNDARY or next_char == Chromosome.LEFT_NOBREAK_BOUNDARY:
                 # create intergenic region and clear the buffer
                 Chromosome.create_intergenic_region(char_buffer, can_break, regions)
@@ -97,6 +101,8 @@ class Chromosome:
                 Chromosome.create_intergenic_region(char_buffer, can_break, regions)
                 char_buffer = []
                 can_break = True
+            elif next_char == Chromosome.ESSENTIAL_GENE_MARKER:
+                is_essential = True
             else:
                 char_buffer.append(next_char)
         return Chromosome(regions)
@@ -149,11 +155,13 @@ class Gene(ChromosomeRegion):
 
     Attributes:
         ordinal: a unique number that is assigned to the region on creation
+        is_essential: If the gene is an essential gene
     """
     next_ordinal = 0
 
-    def __init__(self, content):
+    def __init__(self, content, is_essential=False):
         ChromosomeRegion.__init__(self, content)
+        self.is_essential = is_essential
         self.ordinal = Gene.next_ordinal
         Gene.next_ordinal += 1
 

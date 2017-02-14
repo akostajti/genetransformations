@@ -99,6 +99,16 @@ class TestChromosome(TestCase):
             self.assertEqual(region.can_break, expectation[0])
             self.assertEqual(region.content, expectation[1], region.represent())
 
+    def test_parse_essential_gene(self):
+        chromosome_descripton = '''<ADCGTGGG>AAAGT(DAC)TTTGACU(UUTGAAA;)AGT<CCCGTU>'''
+
+        chromosome = Chromosome.parse(chromosome_descripton)
+
+        # expected: the gene UUTGAAA is essential
+        self.assertEqual(len(chromosome.regions), 7)
+
+        self.assertTrue(chromosome.regions[4].is_essential)
+
     def test_get_gene_ordinals(self):
         chromosome = Chromosome(
             [
