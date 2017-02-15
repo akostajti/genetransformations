@@ -1,5 +1,6 @@
 import os
 
+
 def index():
     """
     Shows the simulation page
@@ -9,11 +10,20 @@ def index():
     rate_of_translocations = float(request.vars['rate_of_translocations'])
     random_error = float(request.vars['random_error'])
 
-    longer_breaks_often = bool(request.vars['longer_breaks_often'])
-    use_coexpression = bool(request.vars['use_coexpression'])
-    use_essential_gene_pairs = bool(request.vars['use_essential_gene_pairs'])
+    longer_breaks_often = 'True' == request.vars['longer_breaks_often']
+    use_coexpression = 'True' == request.vars['use_coexpression']
+    use_essential_gene_pairs = 'True' == request.vars['use_essential_gene_pairs']
 
     sequence_patterns = request.vars['sequence_patterns']
+
+    essential_genes_window_size = None
+    essential_genes_in_window = None
+    if use_essential_gene_pairs:
+        if 'essential_genes_window_size' in request.vars:
+            essential_genes_window_size = int(request.vars['essential_genes_window_size'])
+
+        if 'essential_genes_in_window' in request.vars:
+            essential_genes_in_window = int(request.vars['essential_genes_in_window'])
 
     scheduler, task = queue_simulation(left_chromosome_file=request.vars['left_chromosome_file'],
                      right_chromosome_file=request.vars['right_chromosome_file'],
@@ -23,7 +33,9 @@ def index():
                      use_essential_gene_pairs=use_essential_gene_pairs,
                      use_coexpression=use_coexpression,
                      longer_breaks_often=longer_breaks_often,
-                     random_error=random_error)
+                     random_error=random_error,
+                                       essential_genes_in_window=essential_genes_in_window,
+                                       essential_genes_window_size=essential_genes_window_size)
 
     redirect(URL('simulation', 'result', vars=dict(task_id=task.id)))
 

@@ -6,10 +6,82 @@ from numpy import random, math
 from applications.GeneticModeling.modules.chromosome import DnaBaseMappings, IntergenicRegion
 
 
+def select_random_region_with_constraints(regions,
+                                          essential_genes_window_size,
+                                          essential_genes_in_window,
+                                          count=1,
+                                          longer_breaks_often=True,
+                                          random_error=None):
+    """
+    Selects a random region segment based on the essential gene constraints.
+
+    Essential genes are special genes. The assumption is that if in a given window size (expressed in number of genes)
+    there are more than x essential genes then the intergenic regions in that segment cannot break. So for example
+    if E1,E2,E3 are essential genes and the window size is 3 with 2 essential genes required so that the segment is
+    non-breakable then the segment in the below example is non-breakable.
+
+     I1 G1 I2 G2 E1 [G1 I3 E2 I4 E3] I5 G3
+
+     Window size 3 means that we check the segments of 3 consecuting genes. essential_genes_in_window == 2 means that if
+     there are at lest 2 essential genes in the segment than it cannot break. This function returns a list of segments
+     that can break respecting these constraints.
+    """
+    MAX_TRIALS = 100
+
+    regions = regions[:]  # copy the list because this function modifies the list
+
+    result = []
+    for i in range(count):
+        # randomly find a sublist that matches the constraint
+        genes = [region for region in regions if not region.can_break]
+
+        if len(genes) < essential_genes_window_size:
+            """
+            if there are less genes than the essential window size then just randomly select th remaining regions
+            """
+            selected = select_random_region(regions, count=count - i,
+                                            longer_breaks_often=longer_breaks_often,
+                                            random_error=random_error)
+            result += selected
+            return result
+
+        found = False
+        trials = 0
+        while not found and trials < MAX_TRIALS:
+            trials += trials
+            # the last index where we can start the sublist to stay inside the boundaries
+            max_start = len(genes) - essential_genes_window_size
+            sublist_start = random.randint(0, high=max_start)
+            gene_sublist = genes[sublist_start:sublist_start + essential_genes_window_size]
+
+            # count the number of essential genes in the section
+            essentials = sum(1 for gene in gene_sublist if gene.is_essential)
+            if essentials < essential_genes_in_window:
+                found = True
+
+                # randomly select a region from the subsegment containing the genes
+                subsegment = regions[regions.index(gene_sublist[0]):regions.index(gene_sublist[-1]) + 1]
+                selected = select_random_region(subsegment, count=1,
+                                     longer_breaks_often=longer_breaks_often,
+                                     random_error=random_error)
+
+                result += selected
+
+                # remove the subsegment elements from the regions to prevent them from being selected again
+                regions = [region for region in regions if region not in subsegment]
+
+        if trials == MAX_TRIALS:
+            raise RuntimeError("Reached maximum number of trials (" + MAX_TRIALS + ")")
+
+    return result
+
+
 def select_random_region(regions,
                          count=1,
                          longer_breaks_often=True,
-                         random_error=None):
+                         random_error=None,
+                         essential_genes_window_size=None,
+                         essential_genes_in_window=None):
     """
     Randomly selects some regions from the regions list.
 
@@ -19,10 +91,22 @@ def select_random_region(regions,
     :param random_error the error used when selecting the regions that can break. Normally only intergenic regions
         can break. If random_error is greater than 0 then with some chance also non-breaking regions can be selected
         for break.
+    :param essential_genes_window_size the essential gene window size. see select_random_region_with_constraints
+    :param essential_genes_in_window the number of essential genes in the window required for the subsegment
+        for being non-breakable. see select_random_region_with_constraints
 
     :returns a list of size count containing regions from the regions list. If there are no matching regions
     than returns an empty list. The elements in the resulting list are in the same order as in the original.
     """
+
+    if essential_genes_in_window and essential_genes_window_size:
+        return select_random_region_with_constraints(regions,
+                                                     essential_genes_window_size=essential_genes_window_size,
+                                                     essential_genes_in_window=essential_genes_in_window,
+                                                     count=count,
+                                                     longer_breaks_often=longer_breaks_often,
+                                                     random_error=random_error)
+
     def error():
         return random.choice([True, False], p=[random_error, 1.0 - random_error])
 
@@ -57,6 +141,7 @@ def compute_probabilities_based_on_length(regions):
 
     return probabilities
 
+
 class Transformation:
     """
     Base class for all transformations.
@@ -64,10 +149,23 @@ class Transformation:
     Arguments:
         longer_breaks_often: if true then the longer intergenic regions break with a higher probability
     """
-    def __init__(self, longer_breaks_often=True, random_error=None):
+    def __init__(self,
+                 longer_breaks_often=True,
+                 random_error=None,
+                 essential_genes_window_size=None,
+                 essential_genes_in_window=None):
         self.longer_breaks_often = longer_breaks_often
         self.random_error = random_error
-    pass
+        self.essential_genes_window_size=essential_genes_window_size
+        self.essential_genes_in_window=essential_genes_in_window
+
+    def select_random_region(self, regions, count=1):
+        return select_random_region(regions, count=count,
+                             longer_breaks_often=self.longer_breaks_often,
+                             essential_genes_in_window=self.essential_genes_in_window,
+                             essential_genes_window_size=self.essential_genes_window_size,
+                             random_error=self.random_error)
+
 
 
 class Inversion(Transformation):
@@ -87,8 +185,17 @@ class Inversion(Transformation):
     Attributes:
         chromosome: the chromosome to transform
     """
-    def __init__(self, chromosome, longer_breaks_often=True, random_error=None):
-        Transformation.__init__(self, longer_breaks_often=longer_breaks_often, random_error=random_error)
+    def __init__(self,
+                 chromosome,
+                 longer_breaks_often=True,
+                 random_error=None,
+                 essential_genes_window_size=None,
+                 essential_genes_in_window=None):
+        Transformation.__init__(self,
+                                longer_breaks_often=longer_breaks_often,
+                                random_error=random_error,
+                                essential_genes_window_size=essential_genes_window_size,
+                                essential_genes_in_window=essential_genes_in_window)
         self.chromosome = chromosome
 
     def transform_with_regions(self,
@@ -126,9 +233,7 @@ class Inversion(Transformation):
         """
         Transforms the chromosome
         """
-        regions = self.chromosome.regions
-        breaking_points = select_random_region(self.chromosome.regions, count=2,
-                                               longer_breaks_often=self.longer_breaks_often)
+        breaking_points = self.select_random_region(self.chromosome.regions, count=2)
 
         left_region_breaking_point = random.randint(0, high=len(breaking_points[0].content))
         right_region_breaking_point = random.randint(0, high=len(breaking_points[1].content))
@@ -156,9 +261,13 @@ class Translocation(Transformation):
                  left_chromosome,
                  right_chromosome,
                  longer_breaks_often=True,
-                 random_error=None):
+                 random_error=None,
+                 essential_genes_window_size=None,
+                 essential_genes_in_window=None):
         Transformation.__init__(self, longer_breaks_often=longer_breaks_often,
-                                random_error=random_error)
+                                random_error=random_error,
+                                essential_genes_window_size=essential_genes_window_size,
+                                essential_genes_in_window=essential_genes_in_window)
         self.left_chromosome = left_chromosome
         self.right_chromosome = right_chromosome
 
@@ -235,7 +344,6 @@ class Translocation(Transformation):
                                              left_region_breaking_point=prefix_length,
                                              right_region_breaking_point=postfix_length)
 
-
     def transform(self):
         """
         Random translocation
@@ -247,11 +355,10 @@ class Translocation(Transformation):
         target = chromosomes[0]
 
         # these are the tw regions that will break in the source
-        left_source_region, right_source_region = select_random_region(source.regions, count=2,
-                                                                       longer_breaks_often=self.longer_breaks_often)
+        left_source_region, right_source_region = self.select_random_region(source.regions, count=2)
 
         # this is the insertion point in the target region
-        target_insertion_region = select_random_region(target.regions, longer_breaks_often=self.longer_breaks_often)[0]
+        target_insertion_region = self.select_random_region(target.regions)[0]
 
         reverse = random.choice([True, False])
 

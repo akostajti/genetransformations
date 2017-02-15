@@ -43,6 +43,10 @@ def _get_simulation_form():
               default=True),
         Field('use_essential_gene_pairs', 'boolean',
               label=T('Use essential gene pairs')),
+        Field('essential_genes_window_size', 'integer',
+              label=T('Essential genes window size')),
+        Field('essential_genes_in_window', 'integer',
+              label=T('Essential genes in window to prevent breaking')),
         Field('use_coexpression', 'boolean',
               label=T('Use coexpression')),
     )

@@ -1,6 +1,5 @@
 {{left_sidebar_enabled,right_sidebar_enabled=False,('message' in globals())}}
 {{extend 'layout.html'}}
-{{=BEAUTIFY(status)}}
         <script src="{{=URL('static','js/Chart.js')}}"></script>
 {{if status.scheduler_run.status == 'COMPLETED':}}
     <h1>{{=T('The simulation has ended')}}</h1>
@@ -55,6 +54,10 @@
     <p>
         {{=T('The page refreshes automatically in 5 seconds')}}
     </p>
+        <script type="text/javascript">
+
+            setTimeout(function (){location.reload();}, 5000);
+        </script>
 {{pass}}
 
 

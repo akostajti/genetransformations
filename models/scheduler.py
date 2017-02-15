@@ -9,6 +9,7 @@ from gluon.scheduler import Scheduler
 
 import os
 
+
 def simulation(number_of_transformations,
                    rate_of_translocations,
                    random_error,
@@ -17,7 +18,9 @@ def simulation(number_of_transformations,
                    use_essential_gene_pairs,
                    sequence_patterns,
                    left_chromosome_file,
-                   right_chromosome_file):
+                   right_chromosome_file,
+               essential_genes_window_size,
+               essential_genes_in_window):
 
     # build the chromosomes from the files
     uploads_folder = os.path.join(request.folder, 'uploads')
@@ -35,20 +38,31 @@ def simulation(number_of_transformations,
 
     # history contains tuples: each tuple contains the left and the right chromosome in the given step
     history = []
-    original_left = copy.deepcopy(left_chromosome)
-    original_right = copy.deepcopy(right_chromosome)
 
     # combine the two chromosome representations for later diffs
     original_combination = left_chromosome.represent() + right_chromosome.represent()
 
+    if not use_essential_gene_pairs:
+        essential_genes_in_window =None
+        essential_genes_window_size = None
+
     for step in transformation_sequence:
         if step == 'Translocation':
-            translocation = Translocation(left_chromosome, right_chromosome)
-            translocation.transform()
+            transformation = Translocation(left_chromosome,
+                                          right_chromosome,
+                                          random_error=random_error,
+                                          longer_breaks_often=longer_breaks_often,
+                                            essential_genes_in_window=essential_genes_in_window)
         elif step == 'Inversion':
-            selected = random.choice([left_chromosome, right_chromosome])
-            inversion = Inversion(selected)
-            inversion.transform()
+            selected = random.choice([left_chromosome,
+                                      right_chromosome])
+            transformation = Inversion(selected,
+                                  random_error=random_error,
+                                  longer_breaks_often=longer_breaks_often,
+                                    essential_genes_window_size=essential_genes_window_size,
+                                    essential_genes_in_window=essential_genes_in_window)
+
+        transformation.transform()
 
         combination = left_chromosome.represent() + right_chromosome.represent()
         levenshtein_distance = editdistance.eval(original_combination, combination)
