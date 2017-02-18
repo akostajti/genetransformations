@@ -1,6 +1,7 @@
 
 import os
 
+
 def index():
     """
     Shows the simulation form page

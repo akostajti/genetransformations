@@ -51,7 +51,7 @@ def _():
     # useful links to internal and external resources
     # ------------------------------------------------------------------------------------------------------------------
     response.menu += [
-        (T('Generate chromosomes'), False, URL('generate', 'default')),
+        (T('Generate chromosomes'), False, URL('generate', 'index')),
     ]
 
 
