@@ -20,7 +20,8 @@ def simulation(number_of_transformations,
                    left_chromosome_file,
                    right_chromosome_file,
                essential_genes_window_size,
-               essential_genes_in_window):
+               essential_genes_in_window,
+               compute_diffs=False):
 
     # build the chromosomes from the files
     uploads_folder = os.path.join(request.folder, 'uploads')
@@ -64,8 +65,10 @@ def simulation(number_of_transformations,
 
         transformation.transform()
 
-        combination = left_chromosome.represent() + right_chromosome.represent()
-        levenshtein_distance = editdistance.eval(original_combination, combination)
+        levenshtein_distance = 0
+        if compute_diffs:
+            combination = left_chromosome.represent() + right_chromosome.represent()
+            levenshtein_distance = editdistance.eval(original_combination, combination)
 
         history.append(dict(left=_create_history_item(left_chromosome),
                             right=_create_history_item(right_chromosome),

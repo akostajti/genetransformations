@@ -50,6 +50,9 @@ def _get_simulation_form():
               label=T('Essential genes in window to prevent breaking')),
         Field('use_coexpression', 'boolean',
               label=T('Use coexpression')),
+        Field('compute_diff', 'boolean',
+              label=T('Compute diffs'),
+              default=False)
     )
 
     return form

@@ -35,6 +35,7 @@
 'Clear RAM': 'Clear RAM',
 'Community': 'Community',
 'Components and Plugins': 'Components and Plugins',
+'Compute diffs': 'Compute diffs',
 'Config.ini': 'Config.ini',
 'Controller': 'Controller',
 'Copyright': 'Copyright',
@@ -182,4 +183,5 @@
 'View': 'View',
 'Welcome': '',
 'Working...': 'Working...',
+'Compute diffs': 'Kromoszómatávolságok kiszámítása'
 }

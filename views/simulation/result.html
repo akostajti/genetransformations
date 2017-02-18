@@ -1,6 +1,7 @@
 {{left_sidebar_enabled,right_sidebar_enabled=False,('message' in globals())}}
 {{extend 'layout.html'}}
         <script src="{{=URL('static','js/Chart.js')}}"></script>
+
 {{if status.scheduler_run.status == 'COMPLETED':}}
     <h1>{{=T('The simulation has ended')}}</h1>
     <p>

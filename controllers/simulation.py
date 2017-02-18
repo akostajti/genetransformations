@@ -14,6 +14,8 @@ def index():
     use_coexpression = 'True' == request.vars['use_coexpression']
     use_essential_gene_pairs = 'True' == request.vars['use_essential_gene_pairs']
 
+    compute_diffs = 'True' == request.vars['compute_diffs']
+
     sequence_patterns = request.vars['sequence_patterns']
 
     essential_genes_window_size = None
@@ -35,7 +37,8 @@ def index():
                      longer_breaks_often=longer_breaks_often,
                      random_error=random_error,
                                        essential_genes_in_window=essential_genes_in_window,
-                                       essential_genes_window_size=essential_genes_window_size)
+                                       essential_genes_window_size=essential_genes_window_size,
+                                       compute_diffs=compute_diffs)
 
     redirect(URL('simulation', 'result', vars=dict(task_id=task.id)))
 
