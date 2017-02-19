@@ -13,7 +13,7 @@ def index():
 
     if form.accepted:
         session.flash = T('Generating the chromosome')
-        filename = _generate(form)
+        filename = generate_chromosome_description(form)
         redirect(URL('generate', 'download', args=[filename]))
 
     return dict(form=form)
@@ -58,7 +58,7 @@ def _get_generator_form():
     return form
 
 
-def _generate(form):
+def generate_chromosome_description(form):
     """
     Generates a chromosome description based on the form parameters. The chromosome description is in a format parseable
     by the Chromosome class.
@@ -106,6 +106,7 @@ def _generate(form):
         output.write('<' + end + '>')
 
     return filename
+
 
 def _generate_random_region(length):
     return "".join(random.choice(['A', 'T', 'C', 'G'], size=length))
