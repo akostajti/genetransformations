@@ -127,7 +127,7 @@ def select_random_region(regions,
     result = random.choice(filtered, p=probabilities, size=count, replace=False)
 
     # sort the items to their original order
-    tuples = sorted(zip([regions.index(region) for region in result], result))
+    tuples = sorted(enumerate(result))
     return map(lambda (k, v): v, tuples)
 
 
