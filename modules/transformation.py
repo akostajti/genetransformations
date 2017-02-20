@@ -5,6 +5,11 @@ from numpy import random, math
 
 from applications.GeneticModeling.modules.chromosome import DnaBaseMappings, IntergenicRegion
 
+import logging
+
+logger = logging.getLogger("web2py.app.GeneticModeling")
+logger.setLevel(logging.DEBUG)
+
 
 def select_random_region_with_constraints(regions,
                                           essential_genes_window_size,
@@ -385,6 +390,7 @@ class Translocation(Transformation):
     def _split_region(region, breaking_point=None):
         content = region.content
 
+        logger.debug("splitting region. content: " + content)
         if breaking_point is None:
             breaking_point = random.randint(1, high=len(content) - 1)
 
