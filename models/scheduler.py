@@ -9,6 +9,11 @@ from gluon.scheduler import Scheduler
 
 import os
 
+import logging
+
+logger = logging.getLogger("web2py.app.GeneticModeling")
+logger.setLevel(logging.DEBUG)
+
 
 def simulation(number_of_transformations,
                    rate_of_translocations,
@@ -30,8 +35,10 @@ def simulation(number_of_transformations,
     right_chromosome = _build_chromosome_from_file(os.path.join(uploads_folder, right_chromosome_file),
                                                    use_coexpression=use_coexpression)
 
-    number_of_translocations = int(rate_of_translocations * number_of_transformations)
+    number_of_translocations = int((float(rate_of_translocations)/100) * number_of_transformations)
     number_of_inversions = number_of_transformations - number_of_translocations
+
+    logger.debug("number of translocations: %d, number of inversions: %d", number_of_translocations, number_of_inversions)
 
     # this sequence contains the list if transformations to execute
     transformation_sequence = ['Translocation'] * number_of_translocations + ['Inversion'] * number_of_inversions
