@@ -29,7 +29,7 @@ def _get_simulation_form():
               default=50),
         Field('rate_of_translocations', 'integer',
               default=0,
-              requires=IS_INT_IN_RANGE(minimum=0, maximum=100),
+              requires=IS_INT_IN_RANGE(minimum=0, maximum=101),
               label=T('Percentage of translocations')),
         Field('random_error', 'double',
               default=0.0,
