@@ -332,8 +332,10 @@ class Translocation(Transformation):
         left_source_region_split = self._split_region(left_source_region, breaking_point=split_left_source_region_at)
         right_source_region_split = self._split_region(right_source_region, breaking_point=split_right_source_region_at)
 
-        source.regions[source.regions.index(left_source_region)] = left_source_region_split[0]
-        source.regions[source.regions.index(right_source_region)] = right_source_region_split[1]
+        # in the source merge the two broken intergenic region parts
+        merged = IntergenicRegion(left_source_region_split[0].content + right_source_region_split[1].content)
+        source.regions[source.regions.index(left_source_region)] = merged
+        del source.regions[source.regions.index(right_source_region)]
 
         prefix_length = len(new_regions[0].content)
         postfix_length = len(right_source_region_split[0].content)
@@ -348,6 +350,8 @@ class Translocation(Transformation):
                                              right_region=new_regions[1],
                                              left_region_breaking_point=prefix_length,
                                              right_region_breaking_point=postfix_length)
+        logger.debug("left chromosome after transformation: " + self.left_chromosome.describe())
+        logger.debug("right chromosome after transformation: " + self.right_chromosome.describe())
 
     def transform(self):
         """
