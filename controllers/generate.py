@@ -77,6 +77,7 @@ def generate_chromosome_description(form):
         start = _generate_random_region(random.randint(minimum_intergenic_region_length, high=maximum_intergenic_region_length))
         output.write('<' + start + '>')
 
+        write_intergenic_region(maximum_intergenic_region_length, minimum_intergenic_region_length, output)
         # generate the genes and intergenics in sequence
         next_is_gene = True
         count = number_of_genes
@@ -96,16 +97,22 @@ def generate_chromosome_description(form):
                     output.write(';')
                 output.write(')')
             else:
-                intergenic = _generate_random_region(random.randint(minimum_intergenic_region_length, high=maximum_intergenic_region_length))
-                output.write(intergenic)
+                write_intergenic_region(maximum_intergenic_region_length, minimum_intergenic_region_length, output)
             next_is_gene = not next_is_gene
 
         # generate the opening non-breakable region
+        write_intergenic_region(maximum_intergenic_region_length, minimum_intergenic_region_length, output)
         end = _generate_random_region(
             random.randint(minimum_intergenic_region_length, high=maximum_intergenic_region_length))
         output.write('<' + end + '>')
 
     return filename
+
+
+def write_intergenic_region(maximum_intergenic_region_length, minimum_intergenic_region_length, output):
+    intergenic = _generate_random_region(
+        random.randint(minimum_intergenic_region_length, high=maximum_intergenic_region_length))
+    output.write(intergenic)
 
 
 def _generate_random_region(length):
