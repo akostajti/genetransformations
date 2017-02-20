@@ -46,10 +46,7 @@
     <p>
         {{=T('Errors during the simulation')}}
     </p>
-
-    {{for k in traceback:}}
-        {{=k}}
-    {{pass}}
+    {{=BEAUTIFY(traceback)}}
 {{else:}}
     <h1>{{=T('The simulation is running')}}</h1>
     <p>
