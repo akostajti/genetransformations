@@ -26,6 +26,9 @@ class TestTranslocation(TestCase):
             IntergenicRegion('CGTGCTG')
         ])
 
+        print left.describe()
+        print right.describe()
+
         original_left = left.represent()
         original_right = right.represent()
 
@@ -35,6 +38,9 @@ class TestTranslocation(TestCase):
         self.assertNotEqual(original_right, right.represent())
 
         self.assertEqual(len(original_left) + len(original_right), len(left.represent()) + len(right.represent()))
+
+        print left.describe()
+        print right.describe()
 
     def test_transform_with_parameters(self):
         """

@@ -30,6 +30,21 @@ class TestChromosome(TestCase):
         expected = 'CTGATCAATCCCGTAT'
         self.assertEqual(expected, chromosome.represent())
 
+    def test_describe(self):
+        regions = [IntergenicRegion('ATAATG'),
+                   IntergenicRegion('GTCT'),
+                   Gene('GGTC'),
+                   IntergenicRegion('GGGTA'),
+                   Gene('AAAT'),
+                   IntergenicRegion('TCTC'),
+                   IntergenicRegion('TGCTG')]
+        regions[2].is_essential = True
+
+        chromosome = Chromosome(regions)
+        description = '<ATAATG>GTCT(GGTC;)GGGTA(AAAT)TCTC<TGCTG>'
+
+        self.assertEqual(description, chromosome.describe())
+
     def test_get_breakable_regions(self):
         regions = [
             Gene('ADAC'),
