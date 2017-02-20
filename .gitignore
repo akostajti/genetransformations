@@ -3,4 +3,4 @@ sessions/**
 errors/**
 uploads/**
 databases/**
-
+**/*.pyc
