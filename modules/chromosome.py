@@ -57,6 +57,23 @@ class Chromosome:
         """
         return [gene.ordinal for gene in self.regions if isinstance(gene, Gene)]
 
+    def describe(self):
+        """
+        Returns the chromosome description (parseable by Chromosome.parse)
+        """
+        result = '<' + self.regions[0].content + '>'
+        for region in self.regions[1:-1]:
+            if region.is_gene:
+                result += '(' + region.content
+                if region.is_essential:
+                    result += ';'
+                result += ')'
+            else:
+                result += region.content
+
+        result += '<' + self.regions[-1].content + '>'
+        return result
+
     @staticmethod
     def parse(chromosome_string, use_coexpression=False):
         """
@@ -131,6 +148,7 @@ class ChromosomeRegion:
         self.content = content
         self.can_break = False
         self.reversed = False
+        self.is_gene = False
 
     def reverse(self):
         """
@@ -167,6 +185,7 @@ class Gene(ChromosomeRegion):
         self.is_essential = is_essential
         self.ordinal = Gene.next_ordinal
         Gene.next_ordinal += 1
+        self.is_gene = True
 
 
 class DnaBaseMappings:
