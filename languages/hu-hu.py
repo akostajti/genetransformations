@@ -30,7 +30,7 @@
 'Cache Keys': 'Cache Keys',
 'Cannot be empty': 'Cannot be empty',
 'Check to delete': 'Check to delete',
-'Chromosome generation parameters': 'Kromoszóma generáláss paraméterei',
+'Chromosome generation parameters': 'Kromoszóma generálás paraméterei',
 'Clear CACHE?': 'Clear CACHE?',
 'Clear DISK': 'Clear DISK',
 'Clear RAM': 'Clear RAM',
