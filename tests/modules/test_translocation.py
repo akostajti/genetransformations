@@ -42,6 +42,23 @@ class TestTranslocation(TestCase):
         print left.describe()
         print right.describe()
 
+    def test_multiple_transform(self):
+        left = Chromosome.parse('<GTACG>AGCG(AGTC)ATAA(AGTA)GGTGC(GTCGC)GCAAC<ACTC>')
+        right = Chromosome.parse('<GACGG>TATT(CCAA)TATAC(ATTG)GTAG(AGCG)CCGAC<GTCA>')
+
+        original_length = len(left.represent()) + len(right.represent())
+
+        # execute several transformations and assert the length
+        for i in range(40):
+            print left.describe()
+            print right.describe()
+            print
+            transformation = Translocation(left_chromosome=left, right_chromosome=right)
+            transformation.transform()
+            new_length = len(left.represent()) + len(right.represent())
+
+            self.assertEqual(original_length, new_length)
+
     def test_transform_with_parameters(self):
         """
         source: AT.CGTTGTATGCTGCCCTCGCT.CTCG
@@ -110,6 +127,14 @@ class TestTranslocation(TestCase):
         self.assertEqual('GTCCGCCTAGTCGGGAGTCCCTGCCCCTGAGCGAGGGCAGCATACAACGAAAAGTCCCCCGTGCTG', target.represent())
 
 
+    def test_transform_with_special_parameters(self):
+        """
+        Tests a case where the regions break in such a way that two genes are put one after th other
+        """
+        left = Chromosome.parse("<GTACG>AGTACGGTCGG(CGCT)CTA(AGTA)(GTCGC)GCAGC<ACTC>")
+        right = Chromosome.parse("<GACGG>TATCG(AGTC)ATAT(CCAA)TATAC(ATTG)GTC<GTCA>")
+
+        translocation = Translocation(left_chromosome=left, right_chromosome=right)
 
     def test__split_region_and_insert(self):
         regions = [

@@ -129,6 +129,9 @@ def select_random_region(regions,
     else:
         probabilities = None
 
+    if len(filtered) < count:
+        return None
+
     result = random.choice(filtered, p=probabilities, size=count, replace=False)
 
     # sort the items to their original order
@@ -312,6 +315,15 @@ class Translocation(Transformation):
         """
         append_to_same = source == target
 
+        logger.debug("transform with parameters: %s, %s, %s, %d, %d, %d, %s", left_source_region.content,
+                     right_source_region.content, target_insertion_region.content, split_left_source_region_at,
+                     split_right_source_region_at, split_target_region_at, str(reverse))
+
+        print "transform with parameters: {0}, {1}, {2}, {3}, {4}, {5}, {6}".format(left_source_region.content,
+                      right_source_region.content, target_insertion_region.content, split_left_source_region_at,
+                      split_right_source_region_at, split_target_region_at, str(reverse))
+        print
+
         # TODO: implement the case when the source and the target are the same
 
         # in the target create two new intergenic regions from the broken one
@@ -364,13 +376,30 @@ class Translocation(Transformation):
         target = chromosomes[0]
 
         # these are the tw regions that will break in the source
-        left_source_region, right_source_region = self.select_random_region(source.regions, count=2)
+        selected_regions = self.select_random_region(source.regions, count=2)
+        if selected_regions is None:
+            logger.debug("Not enough breakable regions, quitting translocation " + source.describe())
+            return
+
+        left_source_region, right_source_region = selected_regions
+
+        # if the left region comes affter the right then swap the two regions
+        if source.regions.index(right_source_region) < source.regions.index(left_source_region):
+            tmp = left_source_region
+            left_source_region = right_source_region
+            right_source_region = tmp
 
         # this is the insertion point in the target region
         target_insertion_region = self.select_random_region(target.regions)[0]
 
         reverse = random.choice([True, False])
 
+        if left_source_region is None or \
+                        right_source_region is None or \
+                        target_insertion_region is None:
+            logger.debug("left_source_region, right_source_region or target_insertion_region is empty, "
+                         "returning from translocation")
+            return
         self.transform_with_parameters(source, target=target,
                        left_source_region=left_source_region, right_source_region=right_source_region,
                        target_insertion_region=target_insertion_region, reverse=reverse)
@@ -396,7 +425,7 @@ class Translocation(Transformation):
 
         logger.debug("splitting region. content: " + content)
         if breaking_point is None:
-            breaking_point = random.randint(1, high=len(content) - 1)
+            breaking_point = random.randint(0, high=len(content) - 1)
 
         new_regions = [IntergenicRegion(content[:breaking_point + 1]),
                        IntergenicRegion(content[breaking_point + 1:])]
